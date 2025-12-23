@@ -7,11 +7,11 @@ from DJIFPVRemoteController3 import DJIFPVRemoteController3
 
 # --- CONFIGURATION ---
 EMULATE_HARDWARE = True
-HIGH_SPEED_THRESHOLD = 0.8  # Above this, key is held solid. Below this, it pulses.
+HIGH_SPEED_THRESHOLD = 0.1  # Above this, key is held solid. Below this, it pulses.
 PULSE_DURATION = 0.13       # Duration of the "tap" for low sensitivity
 PULSE_DURATION_VERTICAL = 0.03  # Duration of the "tap" for vertical axis
 PULSE_DURATION_PITCH = 0.02     # Duration of the "tap" for camera pitch axis
-POLLING_RATE = 0.01         # 100Hz loop speed for responsiveness
+POLLING_RATE = 0.1         # 100Hz loop speed for responsiveness
 
 # Initialize Keyboard
 keyboard = Controller()
