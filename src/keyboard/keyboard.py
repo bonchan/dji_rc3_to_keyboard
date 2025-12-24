@@ -11,8 +11,10 @@ class KeyboardEmulator:
         self.active_keys = {
             'w': False, 's': False, 'a': False, 'd': False,
             'q': False, 'e': False, 'c': False, 'z': False,
-            '1': False, '2': False, '3': False, 'f': False, 't': False,
-            Key.up: False, Key.down: False
+            '1': False, '2': False, '3': False,
+            'f': False, 't': False,
+            Key.up: False, Key.down: False,
+            Key.right: False, Key.left: False,
         }
 
     def _press(self, key):
@@ -62,3 +64,23 @@ class KeyboardEmulator:
             if is_pressed:
                 self._release(key)
                 self.active_keys[key] = False
+
+    def force_cleanup(self):
+        """
+        Hard reset: Explicitly releases every key in the mapping, 
+        regardless of whether the script thinks they are pressed.
+        """
+        if self.print_events:
+            print("\n[EMERGENCY] Force releasing all mapped keys...")
+            
+        for key in self.active_keys.keys():
+            # We call the internal _release directly to bypass state checks
+            try:
+                self.keyboard.release(key)
+                self.active_keys[key] = False
+            except Exception as e:
+                # Silently fail if a specific key wasn't actually 'down' in the OS
+                pass
+        
+        if self.print_events:
+            print("[CLEANUP] Keyboard reset complete.")

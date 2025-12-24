@@ -2,6 +2,7 @@ import time
 import serial.tools.list_ports
 from src.remote_controller.dji_rc3 import DJIRC3
 from src.remote_controller.dji_rcN1 import DJIRCN1
+from src.remote_controller.dji_m300 import DJIM300
 
 from src.keyboard.keyboard import KeyboardEmulator, Key
 
@@ -27,6 +28,7 @@ def main():
         # 2. Fallback to RC3 (Assumes index 0)
         rc = DJIRC3(joystick_index=0, deadzone_threshold=0.2)
 
+    # rc = DJIM300(port="COM5")
 
     k_emu = KeyboardEmulator(emulate_hardware=True, print_events=True)
     last_mode = None
@@ -69,6 +71,7 @@ def main():
         print("\n\nUser interrupted. Closing connection...")
     finally:
         rc.close()
+        k_emu.force_cleanup()
         print("Done.")
 
 if __name__ == "__main__":
