@@ -1,19 +1,27 @@
 import serial
 import struct
-from .base_rc import BaseRemoteController
+from .base_rc import BaseRemoteController, RCConnectionError
+
+buttons = [
+    ['button1', False],
+    ['button2', False],
+    ['button3', False],
+    ['button4', False],
+]
 
 class DJIM300(BaseRemoteController):
     def __init__(self, port="COM5", baudrate=115200, deadzone_threshold=0.1):
-        super().__init__(deadzone_threshold=deadzone_threshold)
+        super().__init__(buttons, deadzone_threshold=deadzone_threshold)
         
         try:
             self.ser = serial.Serial(port, baudrate, timeout=0.1)
             # M300 specific Simulator Enable (Source 0x01, Target 0x06)
             self.ser.write(bytearray.fromhex('550E04660106EB3440062401552B'))
             print(f"DJI M300 Enterprise connected on {port}")
-        except Exception as e:
+        except RCConnectionError as e:
             print(f"Connection Error: {e}")
             self.ser = None
+            raise
 
     def _get_axis_value(self, data, index):
         raw = struct.unpack('<H', data[index:index+2])[0]
@@ -44,6 +52,11 @@ class DJIM300(BaseRemoteController):
             return False
         except:
             return False
+        
+    @property
+    def is_connected(self) -> bool:
+        # Check if the serial object exists and the OS hasn't closed the port
+        return self.serial_conn is not None and self.serial_conn.is_open
 
     def close(self):
         if self.ser: self.ser.close()

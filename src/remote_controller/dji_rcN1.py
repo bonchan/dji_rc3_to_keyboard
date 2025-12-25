@@ -1,19 +1,27 @@
 import serial
 import struct
-from .base_rc import BaseRemoteController
+from .base_rc import BaseRemoteController, RCConnectionError
+
+buttons = [
+    ['button1', False],
+    ['button2', False],
+    ['button3', False],
+    ['button4', False],
+]
 
 class DJIRCN1(BaseRemoteController):
     def __init__(self, port="COM4", baudrate=115200, deadzone_threshold_movement=0.1, deadzone_threshold_elevation=0.1):
-        super().__init__(deadzone_threshold_movement=deadzone_threshold_movement, deadzone_threshold_elevation=deadzone_threshold_elevation)
+        super().__init__(buttons, deadzone_threshold_movement=deadzone_threshold_movement, deadzone_threshold_elevation=deadzone_threshold_elevation)
         
         try:
             self.ser = serial.Serial(port, baudrate, timeout=0.1)
             # Enable Simulator Mode on the RC hardware immediately
             self.ser.write(bytearray.fromhex('550e04660a06eb34400624019436'))
             print(f"DJI RC-N1 connected on {port}")
-        except serial.SerialException as e:
+        except RCConnectionError as e:
             print(f"Could not open serial port {port}: {e}")
             self.ser = None
+            raise
 
     def _get_axis_value(self, data, index):
         """Internal helper to parse and normalize DJI 16-bit axis pairs."""
@@ -62,7 +70,24 @@ class DJIRCN1(BaseRemoteController):
         except Exception as e:
             print(f"N1 Update Error: {e}")
             return False
+        
+    @property
+    def is_connected(self) -> bool:
+        # Check if the serial object exists and the OS hasn't closed the port
+        return self.serial_conn is not None and self.serial_conn.is_open
 
     def close(self):
         if self.ser:
             self.ser.close()
+
+
+
+
+
+# def find_n1_port():
+#     """Scans for the DJI 'For Protocol' COM port."""
+#     ports = serial.tools.list_ports.comports()
+#     for port in ports:
+#         if "For Protocol" in port.description or "DJI" in port.description:
+#             return port.device
+#     return None

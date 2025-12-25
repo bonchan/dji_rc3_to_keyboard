@@ -1,9 +1,12 @@
-class BaseRemoteController:
+from abc import ABC, abstractmethod
+from src.utils.input_logic import ButtonHandler
+
+class BaseRemoteController(ABC):
     """
     Standard interface for DJI Remote Controllers.
     All values are normalized to a float range of -1.0 to 1.0.
     """
-    def __init__(self, deadzone_threshold_movement, deadzone_threshold_elevation):
+    def __init__(self, buttons, deadzone_threshold_movement, deadzone_threshold_elevation):
 
         self.deadzone_threshold_movement = deadzone_threshold_movement
         self.deadzone_threshold_elevation = deadzone_threshold_elevation
@@ -15,23 +18,39 @@ class BaseRemoteController:
         self.roll = 0.0
         self.tilt = 0.0
 
-        # --- Digital Buttons ---
-        self.button1 = False
-        self.button2 = False
-        self.button3 = False
-        self.button4 = False
-
         # --- Mode Switches ---
         # Represented as integers: -1 (Left/Up), 0 (Center), 1 (Right/Down)
         self.sw1 = 0
         self.sw2 = 0
 
-    def update(self):
+        # --- Digital Buttons ---
+        self.button1 = ButtonHandler(buttons[0][0], print_update=buttons[0][1])
+        self.button2 = ButtonHandler(buttons[1][0], print_update=buttons[1][1])
+        self.button3 = ButtonHandler(buttons[2][0], print_update=buttons[2][1])
+        self.button4 = ButtonHandler(buttons[3][0], print_update=buttons[3][1])
+
+    @abstractmethod
+    def update(self) -> bool:
         """
-        To be overridden by DJIRCN1 and DJIRC3.
-        Should update the attributes above and return True if successful.
+        Polls the hardware and updates the axis/button states.
+        MUST be implemented by child classes.
+        Returns: True if successful, False otherwise.
         """
-        raise NotImplementedError("Child classes must implement the update method.")
+        pass
+    
+    @abstractmethod
+    def close(self):
+        """
+        Cleanly releases hardware resources (Serial ports, HID, etc.)
+        MUST be implemented by child classes.
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def is_connected(self) -> bool:
+        """Returns True if the physical hardware is still reachable."""
+        pass
     
     def dead_zone_movement(self, value):
         return self._dead_zone(value, self.deadzone_threshold_movement)
@@ -49,3 +68,7 @@ class BaseRemoteController:
         swts = f"SW1: {self.sw1} SW2: {self.sw2}"
         return f"{axes} | {btns} | {swts} | {self.deadzone_threshold_movement} | {self.deadzone_threshold_elevation}"
     
+class RCConnectionError(Exception):
+    """Custom exception for DJI Remote Controller connection issues."""
+    pass
+

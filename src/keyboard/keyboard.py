@@ -1,5 +1,21 @@
-from pynput.keyboard import Key, Controller
+from pynput.keyboard import Controller, Key
+from enum import Enum
 from time import sleep
+
+class KbButton(Enum):
+    CAMERA_WIDE   = '1'
+    CAMERA_ZOOM   = '2'
+    CAMERA_IR     = '3'
+    PICTURE       = 'f'
+    ANNOTATION    = 't'
+
+class KbAxis(Enum):
+    PITCH         = ('w', 's')
+    ROLL          = ('d', 'a')
+    YAW           = ('e', 'q')
+    THROTTLE      = ('c', 'z')
+    CAMERA_PITCH  = (Key.down, Key.up)
+    CAMERA_YAW    = (Key.right, Key.left)
 
 class KeyboardEmulator:
     def __init__(self, emulate_hardware=True, print_events=True):
@@ -7,38 +23,30 @@ class KeyboardEmulator:
         self.emulate_hardware = emulate_hardware
         self.print_events = print_events
         
-        # Track state to prevent "input flooding" (sending press events every frame)
-        self.active_keys = {
-            'w': False, 's': False, 'a': False, 'd': False,
-            'q': False, 'e': False, 'c': False, 'z': False,
-            '1': False, '2': False, '3': False,
-            'f': False, 't': False,
-            Key.up: False, Key.down: False,
-            Key.right: False, Key.left: False,
-        }
+        # 1. Automatically generate active_keys from the Axis Enum
+        # We also add the static keys for one-shot buttons
+        # self.active_keys = {'1': False, '2': False, '3': False, 'f': False, 't': False}
+        self.active_keys = {}
+
+        for button in KbButton:
+            key = button.value
+            self.active_keys[key] = False
+            
+        for axis in KbAxis:
+            pos_key, neg_key = axis.value
+            self.active_keys[pos_key] = False
+            self.active_keys[neg_key] = False
 
     def _press(self, key):
-        if self.print_events:
-            print(f'[PRESS]: {key}')
-        if self.emulate_hardware:
-            self.keyboard.press(key)
+        if self.print_events: print(f'[PRESS]: {key}')
+        if self.emulate_hardware: self.keyboard.press(key)
 
     def _release(self, key):
-        if self.print_events:
-            print(f'[RELEASE]: {key}')
-        if self.emulate_hardware:
-            self.keyboard.release(key)
-
-    def tap(self, key, delay=0.08):
-        """Quickly press and release a key (one-shot)."""
-        self._press(key)
-        sleep(delay)
-        self._release(key)
+        if self.print_events: print(f'[RELEASE]: {key}')
+        if self.emulate_hardware: self.keyboard.release(key)
 
     def set_key_state(self, key, should_be_pressed):
-        """Ensures the key state in the OS matches the desired state."""
         is_currently_pressed = self.active_keys.get(key, False)
-
         if should_be_pressed and not is_currently_pressed:
             self._press(key)
             self.active_keys[key] = True
@@ -46,8 +54,11 @@ class KeyboardEmulator:
             self._release(key)
             self.active_keys[key] = False
 
-    def handle_axis(self, axis_value, key_pos, key_neg):
-        """Maps a float axis (-1.0 to 1.0) to two binary keys."""
+    # 2. Simplified handle_axis using the Enum
+    def handle_axis(self, axis_enum: KbAxis, axis_value):
+        """Maps a float value to the keys defined in the Axis Enum."""
+        key_pos, key_neg = axis_enum.value
+        
         if axis_value > 0:
             self.set_key_state(key_pos, True)
             self.set_key_state(key_neg, False)
@@ -58,9 +69,15 @@ class KeyboardEmulator:
             self.set_key_state(key_pos, False)
             self.set_key_state(key_neg, False)
 
+    def tap(self, button_enum: KbButton, delay=0.08):
+        """One-shot tap using KbButton Enum."""
+        key = button_enum.value
+        self._press(key)
+        sleep(delay)
+        self._release(key)
+
     def cleanup(self):
-        """Release all keys - call this on exit!"""
-        for key, is_pressed in self.active_keys.items():
+        for key, is_pressed in list(self.active_keys.items()):
             if is_pressed:
                 self._release(key)
                 self.active_keys[key] = False
@@ -84,3 +101,5 @@ class KeyboardEmulator:
         
         if self.print_events:
             print("[CLEANUP] Keyboard reset complete.")
+
+
