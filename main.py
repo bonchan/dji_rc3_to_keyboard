@@ -39,8 +39,9 @@ def main(model_choice):
 
     seq_handler = SequenceHandler()
     cross_and_turn = [
-        SequenceStep(duration=4.0, axes_map={KbAxis.PITCH: 1.0, KbAxis.YAW: 0.0}), # Cross
-        SequenceStep(duration=7.5, axes_map={KbAxis.PITCH: 0.0, KbAxis.YAW: 1.0}), # Turn 180
+        SequenceStep(duration=3.0, axes_map={KbAxis.PITCH: 1.0, KbAxis.YAW: 0.0}), # Cross
+        SequenceStep(duration=1.0, axes_map={KbButton.PAUSE: True}), # Wait
+        SequenceStep(duration=8.0, axes_map={KbAxis.PITCH: 0.0, KbAxis.YAW: 1.0}), # Turn 180
     ]
 
 
@@ -121,6 +122,9 @@ def main(model_choice):
                 if target: k_emu.tap(target)
                 last_camera = rc.sw1
 
+            if overrides.get(KbButton.PAUSE, False):
+                k_emu.tap(KbButton.PAUSE)
+
             # --- 3. Handle Buttons (One-shot Taps) ---
             if rc.button2.is_short_tap:
                 k_emu.tap(KbButton.ANNOTATION)
@@ -169,4 +173,3 @@ if __name__ == "__main__":
     
     # Pass the argument value into main
     main(args.model)
-    

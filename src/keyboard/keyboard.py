@@ -8,6 +8,7 @@ class KbButton(Enum):
     CAMERA_IR     = '3'
     PICTURE       = 'f'
     ANNOTATION    = 't'
+    PAUSE         = Key.space
 
 class KbAxis(Enum):
     PITCH         = ('w', 's')
@@ -90,6 +91,7 @@ class KeyboardEmulator:
         if self.print_events:
             print("\n[EMERGENCY] Force releasing all mapped keys...")
             
+        self.keyboard.tap(KbButton.PAUSE.value)
         for key in self.active_keys.keys():
             # We call the internal _release directly to bypass state checks
             try:
