@@ -89,7 +89,7 @@ class KeyboardEmulator:
         regardless of whether the script thinks they are pressed.
         """
         if self.print_events:
-            print("\n[EMERGENCY] Force releasing all mapped keys...")
+            print("[EMERGENCY] Force releasing all mapped keys...")
             
         self.keyboard.tap(KbButton.PAUSE.value)
         for key in self.active_keys.keys():

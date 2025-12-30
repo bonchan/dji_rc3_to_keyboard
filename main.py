@@ -40,7 +40,7 @@ def main(model_choice):
     seq_handler = SequenceHandler()
     cross_and_turn = [
         SequenceStep(duration=3.0, axes_map={KbAxis.PITCH: 1.0, KbAxis.YAW: 0.0}), # Cross
-        SequenceStep(duration=1.0, axes_map={KbButton.PAUSE: True}), # Wait
+        SequenceStep(duration=0.1, axes_map={KbButton.PAUSE: True}), # Wait
         SequenceStep(duration=8.0, axes_map={KbAxis.PITCH: 0.0, KbAxis.YAW: 1.0}), # Turn 180
     ]
 
@@ -59,10 +59,10 @@ def main(model_choice):
 
     # 3. Universal loop
     try:
-        print("\nStreaming data. Press Ctrl+C to stop.\n")
+        print("Streaming data. Press Ctrl+C to stop.")
         while True:
             if not rc.is_connected:
-                print("\n[!!!] CONTROLLER DISCONNECTED [!!!]")
+                print("[!!!] CONTROLLER DISCONNECTED [!!!]")
                 break
 
             if not rc.update(): continue
@@ -162,7 +162,7 @@ def main(model_choice):
             time.sleep(0.01) # ~100Hz update rate
 
     except KeyboardInterrupt:
-        print("\n\nUser interrupted. Closing connection...")
+        print("User interrupted. Closing connection...")
     finally:
         rc.close()
         k_emu.force_cleanup()
