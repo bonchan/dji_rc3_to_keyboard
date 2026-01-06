@@ -9,19 +9,23 @@ buttons = [
 ]
 
 class DJIRC3(BaseRemoteController):
-    def __init__(self, joystick_index=0, deadzone_threshold_movement=0.1, deadzone_threshold_elevation=0.1):
-        super().__init__(buttons, deadzone_threshold_movement=deadzone_threshold_movement, deadzone_threshold_elevation=deadzone_threshold_elevation)
+    def __init__(self, joystick_index=0, deadzone_threshold_movement=0.1, deadzone_threshold_elevation=0.1, deadzone_threshold_zoom=0.05):
+        # Pasamos los parámetros a la clase base incluyendo el nuevo deadzone_threshold_zoom
+        super().__init__(buttons, 
+                         deadzone_threshold_movement=deadzone_threshold_movement, 
+                         deadzone_threshold_elevation=deadzone_threshold_elevation,
+                         deadzone_threshold_zoom=deadzone_threshold_zoom)
         
         # 1. Initialize Pygame core if not already done
         if not pygame.get_init():
             pygame.init()
             
-        # This tells Pygame to ask the OS for the current list of USB devices again.
+        # Refrescar escaneo de Joysticks
         if pygame.joystick.get_init():
-            pygame.joystick.quit()  # Shutdown the current scan
-        pygame.joystick.init()      # Start a fresh scan
+            pygame.joystick.quit()
+        pygame.joystick.init()
 
-        # 3. Check if anything was found before trying to use it
+        # 3. Check if anything was found
         if pygame.joystick.get_count() == 0:
             raise RCConnectionError("No joysticks detected by OS.")
 
@@ -30,7 +34,6 @@ class DJIRC3(BaseRemoteController):
             self.js.init()
             print(f"Connected to: {self.js.get_name()}")
         except pygame.error as e:
-            # Re-raise as a generic exception so your main loop catches it
             raise RCConnectionError(f"DJI RC3 not found at index {joystick_index}: {e}")
 
     def update(self):
@@ -41,11 +44,11 @@ class DJIRC3(BaseRemoteController):
         
         try:
             # --- Analog Axis Mapping ---
-            # Standard DJI RC3 HID Layout
             self.roll     = self.dead_zone_movement(self.js.get_axis(0))
             self.pitch    = self.dead_zone_movement(self.js.get_axis(1))
             self.throttle = self.dead_zone_elevation(self.js.get_axis(2))
             self.yaw      = self.dead_zone_movement(self.js.get_axis(3))
+            self.zoom     = self.dead_zone_zoom(self.js.get_axis(4))
 
             # --- Digital Button Mapping ---
             self.button1.update(bool(self.js.get_button(0))) # c1
@@ -62,12 +65,11 @@ class DJIRC3(BaseRemoteController):
             return True
 
         except pygame.error:
-            print('pygame.error')
+            print('pygame.error during update')
             return False
         
     @property
     def is_connected(self) -> bool:
-        import pygame
         pygame.event.pump() 
         try:
             return pygame.joystick.get_count() > 0 and self.js.get_init()
