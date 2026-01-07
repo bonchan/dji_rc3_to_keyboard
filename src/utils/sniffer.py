@@ -12,7 +12,7 @@
 
 # # # # def print_header(length):
 # # # #     indices = " ".join(f"{i:02}" for i in range(length))
-# # # #     print("\nIndex:  " + indices)
+# # # #     print("Index:  " + indices)
 # # # #     print("-" * (length * 3 + 8))
 
 # # # # try:
@@ -54,9 +54,9 @@
 # # # #         time.sleep(0.02)
 
 # # # # except serial.SerialException as e:
-# # # #     print(f"\nError: Could not open {PORT}. Make sure DJI Assistant is closed.")
+# # # #     print(f"Error: Could not open {PORT}. Make sure DJI Assistant is closed.")
 # # # # except KeyboardInterrupt:
-# # # #     print("\nStopped.")
+# # # #     print("Stopped.")
 # # # # finally:
     
 # # # #     if 's' in locals(): s.close()
@@ -106,7 +106,7 @@
 # # #         time.sleep(0.01)
 
 # # # except KeyboardInterrupt:
-# # #     print("\nStopping...")
+# # #     print("Stopping...")
 # # # finally:
 # # #     s.close()
 
@@ -157,26 +157,26 @@
 # #                 # Print 14-byte Heartbeat
 # #                 if packets[14]:
 # #                     hex_14 = ' '.join(f'{x:02X}' for x in packets[14])
-# #                     print(f"\n[14 Byte Heartbeat]:\n{hex_14}")
+# #                     print(f"[14 Byte Heartbeat]:{hex_14}")
                 
 # #                 # Print 77-byte System Status
 # #                 if packets[77]:
 # #                     hex_77 = ' '.join(f'{x:02X}' for x in packets[77])
 # #                     # Split into lines for readability
-# #                     print(f"\n[77 Byte Status]:")
+# #                     print(f"[77 Byte Status]:")
 # #                     print(hex_77[:57]) # First part
 # #                     print(hex_77[57:]) # Second part
 
 # #                 # Print if a new packet type appears (the stick data we want!)
 # #                 if packets["other"]:
 # #                     p_other = packets["other"]
-# #                     print(f"\n\033[92m[NEW PACKET DETECTED - {len(p_other)} Bytes]:\033[0m")
+# #                     print(f"\033[92m[NEW PACKET DETECTED - {len(p_other)} Bytes]:\033[0m")
 # #                     print(' '.join(f'{x:02X}' for x in p_other))
 
 # #         time.sleep(0.01)
 
 # # except KeyboardInterrupt:
-# #     print("\nStopped.")
+# #     print("Stopped.")
 # # finally:
 # #     s.close()
 
